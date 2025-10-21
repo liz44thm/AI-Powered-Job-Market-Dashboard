@@ -42,9 +42,11 @@ option = st.sidebar.selectbox(
     (
         "Distribución de salarios por industria",
         "Riesgo de automatización por nivel de adopción de IA",
-        "Distribución de trabajos remotos"
+        "Distribución de trabajos remotos",
+        "Industria con mayor riesgo de automatización"
     )
 )
+
 
 # --- Funciones de visualización ---
 def show_salary_distribution(data):
@@ -78,6 +80,36 @@ def show_remote_work_distribution(data):
         title="Proporción de trabajos compatibles con trabajo remoto"
     )
     st.plotly_chart(fig, use_container_width=True)
+def show_highest_automation_risk(data):
+    st.subheader("Industria con mayor riesgo de automatización por IA 🤖")
+
+    # Agrupar y calcular riesgo promedio
+    risk_by_industry = (
+        data.groupby("Industry")["Automation_Risk"]
+        .mean()
+        .reset_index()
+        .sort_values(by="Automation_Risk", ascending=False)
+    )
+
+    # Gráfico de barras
+    fig = px.bar(
+        risk_by_industry,
+        x="Industry",
+        y="Automation_Risk",
+        title="Riesgo promedio de automatización por industria",
+        labels={"Automation_Risk": "Riesgo promedio"},
+        color="Automation_Risk",
+        color_continuous_scale="Reds"
+    )
+    st.plotly_chart(fig, use_container_width=True)
+
+    # Mostrar industria con mayor riesgo
+    highest_risk = risk_by_industry.iloc[0]
+    st.success(
+        f"La industria con mayor riesgo promedio de automatización es **{highest_risk['Industry']}** "
+        f"con un riesgo de **{highest_risk['Automation_Risk']:.2f}**."
+    )
+
 
 # --- Mostrar visualización seleccionada ---
 if option == "Distribución de salarios por industria":
@@ -86,4 +118,5 @@ elif option == "Riesgo de automatización por nivel de adopción de IA":
     show_automation_risk(filtered_df)
 elif option == "Distribución de trabajos remotos":
     show_remote_work_distribution(filtered_df)
-
+elif option == "Industria con mayor riesgo de automatización":
+    show_highest_automation_risk(filtered_df)
